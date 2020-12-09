@@ -1,0 +1,51 @@
+version: "3"
+services:
+
+  selenium-hub:
+    image: selenium/hub
+    container_name: selenium-hub
+    networks:
+      applyandbuyautomation_default: {}
+    ports:
+      - "4444:4444"
+      
+  chrome:
+    image: selenium/node-chrome
+    networks:
+       applyandbuyautomation_default: {}
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium-hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    ports:
+      - 5554
+      
+  firefox:
+    image: selenium/node-firefox
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=selenium-hub
+      - HUB_PORT_4444_TCP_PORT=4444
+    ports:
+      - 5554
+       
+  customer-module:
+    image: yugz/selenium-demo:demo
+    container_name: customer-module
+    networks:
+      applyandbuyautomation_default: {}
+    depends_on:
+      - firefox
+      - chrome
+    environment:
+      - MODULE=testNG_Sanity_lco.xml
+      - BROWSER=firefox
+      - HOST_HUB=localhost
+    volumes:
+      - /home/user/customer-module-result:/output
+    
+  networks:
+    applyandbuyautomation_default:
+      diver: bridge
